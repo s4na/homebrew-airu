@@ -1,5 +1,7 @@
 # homebrew-airu
 
+airu = ai rules
+
 ## TODO
 - [ ] homebrew でインストールできるようにする
 - [ ] インストールしたら、 `$ airu` or `$ airu install` で更新できるようにしたい
