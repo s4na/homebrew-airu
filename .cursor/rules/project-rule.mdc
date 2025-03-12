@@ -1,0 +1,8 @@
+---
+description: このプロジェクト専用のルール
+globs: *.*
+alwaysApply: false
+---
+# project rule
+
+- 作業が完了したら README の更新が必要か考えて、必要なら更新して
