@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'fileutils'
+require 'yaml'
 
 class Airu
   RULES_DIR = File.expand_path('~/.airu/rules')
@@ -21,6 +22,8 @@ class Airu
     case command
     when 'install'
       install
+    when 'init'
+      init
     when 'update'
       update
     when 'list'
@@ -33,10 +36,63 @@ class Airu
     end
   end
 
+  def init
+    puts "AIルール設定ファイルを初期化しています..."
+    
+    if File.exist?('.airu')
+      puts "警告: .airuファイルが既に存在します。上書きしますか？ [y/N]"
+      response = gets.chomp.downcase
+      return unless response == 'y'
+    end
+    
+    # デフォルトの.airuファイルを作成
+    File.open('.airu', 'w') do |f|
+      f.puts "# AIルール設定ファイル"
+      f.puts "# 各行に使用するルールを記述してください"
+      f.puts "# 例:"
+      f.puts "# project-rule"
+      f.puts "# command-rule"
+    end
+    
+    puts ".airuファイルを作成しました。"
+    puts "必要に応じてルールを編集してください。"
+  end
+
   def install
     puts "AIルールをインストールしています..."
-    # TODO: 実際のインストールロジックを実装
+    
+    # .airuファイルの存在確認
+    unless File.exist?('.airu')
+      puts "エラー: .airuファイルが見つかりません。"
+      puts "airu initコマンドを実行して.airuファイルを作成してください。"
+      return
+    end
+    
+    # .airuファイルからルールを読み込む
+    rules = []
+    File.readlines('.airu').each do |line|
+      line = line.strip
+      next if line.empty? || line.start_with?('#')
+      rules << line
+    end
+    
+    if rules.empty?
+      puts "警告: .airuファイルにルールが指定されていません。"
+      return
+    end
+    
+    # ルールをインストール
+    rules.each do |rule|
+      install_rule(rule)
+    end
+    
     puts "インストール完了！"
+  end
+
+  def install_rule(rule_name)
+    puts "  ルール '#{rule_name}' をインストールしています..."
+    # TODO: 実際のルールインストールロジックを実装
+    # ここでは、ルールの存在確認や、適切な場所へのコピーなどを行う
   end
 
   def update
@@ -62,6 +118,7 @@ class Airu
         airu [コマンド]
 
       コマンド:
+        init                .airuファイルを作成します
         install             AIルールをインストールします
         update              AIルールを更新します
         list                インストール済みのAIルールを表示します
