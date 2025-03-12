@@ -3,7 +3,7 @@ description:
 globs: *.*
 alwaysApply: false
 ---
-# ベースルール
+# base rule
 
 - 私の指示した内容は逐一 PROMPT.md にメモして
 - コミットする時は、コミットメッセージにWhyを書いてコミットして
