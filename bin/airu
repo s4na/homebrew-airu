@@ -91,8 +91,49 @@ class Airu
 
   def install_rule(rule_name)
     puts "  ルール '#{rule_name}' をインストールしています..."
-    # TODO: 実際のルールインストールロジックを実装
-    # ここでは、ルールの存在確認や、適切な場所へのコピーなどを行う
+    
+    # ルールの存在確認
+    rule_dir = File.join(RULES_DIR, rule_name)
+    unless Dir.exist?(rule_dir)
+      puts "  エラー: ルール '#{rule_name}' が見つかりません。"
+      puts "  #{RULES_DIR} ディレクトリにルールが存在するか確認してください。"
+      return false
+    end
+    
+    # プロジェクト内のルール保存先ディレクトリを作成
+    project_rules_dir = File.join(Dir.pwd, '.cursor', 'rules')
+    FileUtils.mkdir_p(project_rules_dir) unless Dir.exist?(project_rules_dir)
+    
+    # ルールファイルのコピー
+    rule_files = Dir.glob(File.join(rule_dir, '**', '*'))
+    if rule_files.empty?
+      puts "  警告: ルール '#{rule_name}' にファイルが見つかりません。"
+      return false
+    end
+    
+    # ルールファイルの保存先パス
+    target_file = File.join(project_rules_dir, "#{rule_name}.mdc")
+    
+    # ルールファイルをコピー
+    begin
+      # rule.mdファイルを探す
+      rule_md_file = rule_files.find { |f| File.basename(f) == 'rule.md' }
+      
+      if rule_md_file
+        FileUtils.cp(rule_md_file, target_file)
+        puts "  ルール '#{rule_name}' を #{target_file} にインストールしました。"
+        return true
+      else
+        # rule.mdがない場合は最初のファイルをコピー
+        FileUtils.cp(rule_files.first, target_file)
+        puts "  ルール '#{rule_name}' を #{target_file} にインストールしました。"
+        puts "  警告: rule.mdファイルが見つからなかったため、別のファイルをコピーしました。"
+        return true
+      end
+    rescue => e
+      puts "  エラー: ルール '#{rule_name}' のインストール中にエラーが発生しました: #{e.message}"
+      return false
+    end
   end
 
   def update
