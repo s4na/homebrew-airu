@@ -10,7 +10,13 @@ class Airu
   end
 
   def run(args)
-    command = args.shift || 'help'
+    if args.empty?
+      # 引数なしの場合はinstallを実行
+      install
+      return
+    end
+
+    command = args.shift
     
     case command
     when 'install'
@@ -19,7 +25,7 @@ class Airu
       update
     when 'list'
       list
-    when 'help'
+    when '-h', '--help', 'help'
       help
     else
       puts "不明なコマンド: #{command}"
@@ -52,13 +58,14 @@ class Airu
       airu - AIルールマネージャー
 
       使い方:
+        airu                AIルールをインストールします
         airu [コマンド]
 
       コマンド:
-        install   AIルールをインストールします
-        update    AIルールを更新します
-        list      インストール済みのAIルールを表示します
-        help      このヘルプを表示します
+        install             AIルールをインストールします
+        update              AIルールを更新します
+        list                インストール済みのAIルールを表示します
+        -h, --help, help    このヘルプを表示します
 
       詳細は https://github.com/s4na/homebrew-airu を参照してください。
     HELP
