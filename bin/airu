@@ -1,0 +1,70 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+
+class Airu
+  RULES_DIR = File.expand_path('~/.airu/rules')
+  
+  def initialize
+    FileUtils.mkdir_p(RULES_DIR) unless Dir.exist?(RULES_DIR)
+  end
+
+  def run(args)
+    command = args.shift || 'help'
+    
+    case command
+    when 'install'
+      install
+    when 'update'
+      update
+    when 'list'
+      list
+    when 'help'
+      help
+    else
+      puts "不明なコマンド: #{command}"
+      help
+    end
+  end
+
+  def install
+    puts "AIルールをインストールしています..."
+    # TODO: 実際のインストールロジックを実装
+    puts "インストール完了！"
+  end
+
+  def update
+    puts "AIルールを更新しています..."
+    # TODO: 実際の更新ロジックを実装
+    puts "更新完了！"
+  end
+
+  def list
+    puts "インストール済みのAIルール:"
+    # TODO: インストール済みルールの一覧表示ロジックを実装
+    if Dir.empty?(RULES_DIR)
+      puts "  インストール済みのルールはありません。"
+    end
+  end
+
+  def help
+    puts <<~HELP
+      airu - AIルールマネージャー
+
+      使い方:
+        airu [コマンド]
+
+      コマンド:
+        install   AIルールをインストールします
+        update    AIルールを更新します
+        list      インストール済みのAIルールを表示します
+        help      このヘルプを表示します
+
+      詳細は https://github.com/s4na/homebrew-airu を参照してください。
+    HELP
+  end
+end
+
+if __FILE__ == $0
+  Airu.new.run(ARGV)
+end 
