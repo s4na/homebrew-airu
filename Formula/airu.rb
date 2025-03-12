@@ -1,8 +1,8 @@
 class Airu < Formula
   desc "AIルールマネージャー"
   homepage "https://github.com/s4na/homebrew-airu"
-  url "https://github.com/s4na/homebrew-airu/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "088c5683bb86cf32148ccd1dc57f99aaced2941fb5b5dfe5b9f15c22730843d8"
+  url "https://github.com/s4na/homebrew-airu/archive/refs/tags/v0.1.1.tar.gz"
+  sha256 "19bf318c7269a2e915da70a1c1ef5b9fa30bb8a29215037a7c7c9dcdd0b9bfe6"
   license "MIT"
 
   depends_on "ruby"
@@ -12,6 +12,6 @@ class Airu < Formula
   end
 
   test do
-    system "#{bin}/airu", "help"
+    system "#{bin}/airu", "-h"
   end
 end 
