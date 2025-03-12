@@ -2,6 +2,20 @@
 
 airu = ai rules
 
+## Usage
+
+```
+brew tap s4na/homebrew-airu
+```
+
+```
+brew install airu
+```
+
+```
+airu
+```
+
 ## TODO
 - [ ] homebrew でインストールできるようにする
 - [ ] インストールしたら、 `$ airu` or `$ airu install` で更新できるようにしたい
