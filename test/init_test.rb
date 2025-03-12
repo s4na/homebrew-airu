@@ -67,4 +67,49 @@ class InitTest < Minitest::Test
     
     assert_equal expected_content, content
   end
+
+  # ファイルシステム操作をモック化したテスト
+  def test_init_with_file_system_mock
+    # ファイル存在チェックをモック
+    File.stub(:exist?, false) do
+      # ファイル書き込みをモック
+      file_mock = StringIO.new
+      
+      # File.openをスタブ化して、ブロックにfile_mockを渡す
+      File.stub(:open, nil, file_mock) do
+        output = capture_stdout do
+          # initメソッドを直接呼び出す
+          airu = Airu.new
+          airu.init
+        end
+        
+        # 出力メッセージを検証
+        assert_match(/AIルール設定ファイルを初期化しています/, output)
+        assert_match(/\.airuファイルを作成しました/, output)
+      end
+    end
+  end
+
+  # ユーザー入力をスタブ化したテスト
+  def test_init_with_user_input_stub
+    # 既存の.airuファイルを作成
+    File.write('.airu', "existing content")
+    
+    # ユーザー入力をスタブ化
+    output = simulate_stdin('y') do
+      capture_stdout do
+        airu = Airu.new
+        airu.init
+      end
+    end
+    
+    # 出力メッセージを検証
+    assert_match(/警告: \.airuファイルが既に存在します/, output)
+    assert_match(/\.airuファイルを作成しました/, output)
+    
+    # ファイルが上書きされたことを確認
+    content = File.read('.airu')
+    assert_match(/# AIルール設定ファイル/, content)
+    refute_match(/existing content/, content)
+  end
 end 
