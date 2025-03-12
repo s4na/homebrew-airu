@@ -129,6 +129,7 @@ class Airu
   end
 end
 
+# スクリプトとして実行された場合のみ実行
 if __FILE__ == $0
   Airu.new.run(ARGV)
 end 
