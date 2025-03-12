@@ -4,7 +4,7 @@ require 'fileutils'
 require 'yaml'
 
 class Airu
-  RULES_DIR = File.expand_path('~/.airu/rules')
+  RULES_DIR = File.expand_path('./.airu/rules')
   
   def initialize
     FileUtils.mkdir_p(RULES_DIR) unless Dir.exist?(RULES_DIR)
