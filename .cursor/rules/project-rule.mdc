@@ -6,3 +6,5 @@ alwaysApply: false
 # project rule
 
 - 作業が完了したら README の更新が必要か考えて、必要なら更新して
+- tap の内容を更新したらバージョン更新して
+- バージョン更新した内容は、 VERSIONS.md にも記載して
