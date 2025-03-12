@@ -78,4 +78,40 @@ class InstallTest < Minitest::Test
     assert_match(/ルール 'command-rule' をインストールしています/, output)
     refute_match(/これはコメント/, output)
   end
+
+  def test_install_handles_permission_error
+    # ルールが記載された.airuファイルを作成
+    File.write('.airu', "test-rule")
+    
+    # .cursorディレクトリを作成して権限を制限
+    FileUtils.mkdir_p('.cursor')
+    FileUtils.chmod(0000, '.cursor') # 読み取り/書き込み/実行権限をすべて削除
+    
+    begin
+      output, status = run_airu('install')
+      
+      assert status, "コマンドが失敗しました"
+      assert_match(/AIルールをインストールしています/, output)
+      assert_match(/ルール 'test-rule' をインストールしています/, output)
+      assert_match(/エラー: ルール 'test-rule' のインストール中にエラーが発生しました/, output)
+    ensure
+      # テスト後に権限を元に戻す
+      FileUtils.chmod(0755, '.cursor')
+    end
+  end
+
+  def test_install_handles_corrupted_airu_file
+    # 破損した.airuファイルを模擬（バイナリデータを含む）
+    File.open('.airu', 'wb') do |f|
+      f.write("valid-rule\n\x00\x01\x02\nproject-rule")
+    end
+    
+    output, status = run_airu('install')
+    
+    assert status, "コマンドが失敗しました"
+    assert_match(/AIルールをインストールしています/, output)
+    assert_match(/ルール 'valid-rule' をインストールしています/, output)
+    # バイナリデータは無視されるか、エラーが発生しても処理が続行されることを確認
+    assert_match(/ルール 'project-rule' をインストールしています/, output)
+  end
 end 
