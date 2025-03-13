@@ -59,6 +59,7 @@ default_rules:
 # 各行に使用するルールを記述してください
 project-rule
 command-rule
+code-review-rule
 ```
 
 各行に1つのルール名を記述します。`#`で始まる行はコメントとして扱われます。
@@ -138,6 +139,10 @@ airu -h
 
 - `project-rule` - プロジェクト固有の情報をAIに提供するためのルール
 - `command-rule` - 特定のコマンドをAIに認識させるためのルール
+- `code-review-rule` - コードレビューを支援するためのルール
+  - `/review` - コードレビューを開始するコマンド
+  - `/focus` - 特定の観点に焦点を当ててレビューするコマンド
+  - `/summary` - レビュー結果をまとめるコマンド
 
 ## テスト
 
@@ -154,7 +159,7 @@ rake test
 - [ ] 日本語で作ったルールを翻訳して英語で出力するようにする
 - [ ] 特定のルールを選んでインポートできるようにする
   - [x] `.airu`ファイルで、使用するルールを指定できるようにする
-  - [ ] サンプルAIルールをリポジトリに含める（`project-rule`や`command-rule`）
+  - [x] サンプルAIルールをリポジトリに含める（`project-rule`や`command-rule`、`code-review-rule`）
 - [x] 設定ファイル(`.airu.yml`)のサポートを追加する
 
 ## AIルールのTODO

@@ -71,7 +71,7 @@
 ### 追加機能の実装
 - [x] STORY: 設定ファイルのサポート追加
   - [x] 設定ファイル（`.airu.yml`）のサポートを追加する
-- [ ] STORY: 追加AIルールの作成
-  - [ ] `code-review-rule`を作成する
-    - [ ] `~/.airu/rules/code-review-rule/rule.md`ファイルを作成する
-    - [ ] サンプル例を作成する 
+- [x] STORY: 追加AIルールの作成
+  - [x] `code-review-rule`を作成する
+    - [x] `~/.airu/rules/code-review-rule/rule.md`ファイルを作成する
+    - [x] サンプル例を作成する 
