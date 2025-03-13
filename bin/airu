@@ -4,11 +4,22 @@ require 'fileutils'
 require 'yaml'
 
 class Airu
-  RULES_DIR = File.expand_path('./.airu/rules')
-  VERSION_FILE = File.expand_path('./.airu/versions.yml')
+  RULES_DIR = File.expand_path('~/.airu/rules')
+  VERSION_FILE = File.expand_path('~/.airu/versions.yml')
+  DEFAULT_CONFIG = {
+    'rules_dir' => RULES_DIR,
+    'default_rules' => ['project-rule', 'command-rule']
+  }
   
   def initialize
-    FileUtils.mkdir_p(RULES_DIR) unless Dir.exist?(RULES_DIR)
+    # 設定ファイルを読み込む
+    @config = load_config
+    
+    # ルールディレクトリを設定
+    @rules_dir = File.expand_path(@config['rules_dir'])
+    
+    # ディレクトリが存在しない場合は作成
+    FileUtils.mkdir_p(@rules_dir) unless Dir.exist?(@rules_dir)
     FileUtils.mkdir_p(File.dirname(VERSION_FILE)) unless Dir.exist?(File.dirname(VERSION_FILE))
     
     # バージョン情報ファイルが存在しない場合は作成
@@ -37,6 +48,8 @@ class Airu
       update
     when 'list'
       list
+    when 'config'
+      config
     when '-h', '--help', 'help'
       help
     else
@@ -59,8 +72,12 @@ class Airu
       f.puts "# AIルール設定ファイル"
       f.puts "# 各行に使用するルールを記述してください"
       f.puts "# 例:"
-      f.puts "# project-rule"
-      f.puts "# command-rule"
+      
+      # 設定ファイルからデフォルトルールを取得
+      default_rules = @config['default_rules'] || ['project-rule', 'command-rule']
+      default_rules.each do |rule|
+        f.puts "#{rule}"
+      end
     end
     
     puts ".airuファイルを作成しました。"
@@ -102,10 +119,10 @@ class Airu
     puts "  ルール '#{rule_name}' をインストールしています..."
     
     # ルールの存在確認
-    rule_dir = File.join(RULES_DIR, rule_name)
+    rule_dir = File.join(@rules_dir, rule_name)
     unless Dir.exist?(rule_dir)
       puts "  エラー: ルール '#{rule_name}' が見つかりません。"
-      puts "  #{RULES_DIR} ディレクトリにルールが存在するか確認してください。"
+      puts "  #{@rules_dir} ディレクトリにルールが存在するか確認してください。"
       return false
     end
     
@@ -229,7 +246,7 @@ class Airu
     # ルールを更新
     updated = false
     rules.each do |rule|
-      rule_dir = File.join(RULES_DIR, rule)
+      rule_dir = File.join(@rules_dir, rule)
       unless Dir.exist?(rule_dir)
         puts "  エラー: ルール '#{rule}' が見つかりません。"
         next
@@ -315,6 +332,41 @@ class Airu
     end
   end
 
+  def config
+    puts "設定ファイルを初期化しています..."
+    
+    if File.exist?('.airu.yml')
+      puts "警告: .airu.ymlファイルが既に存在します。上書きしますか？ [y/N]"
+      response = gets.chomp.downcase
+      return unless response == 'y'
+    end
+    
+    # デフォルトの設定ファイルを作成
+    File.open('.airu.yml', 'w') do |f|
+      f.puts YAML.dump(DEFAULT_CONFIG)
+    end
+    
+    puts ".airu.ymlファイルを作成しました。"
+    puts "必要に応じて設定を編集してください。"
+  end
+
+  def load_config
+    # プロジェクトディレクトリの設定ファイルを読み込む
+    config_file = File.join(Dir.pwd, '.airu.yml')
+    
+    if File.exist?(config_file)
+      begin
+        config = YAML.load_file(config_file) || {}
+        return DEFAULT_CONFIG.merge(config)
+      rescue => e
+        puts "警告: 設定ファイルの読み込み中にエラーが発生しました: #{e.message}"
+      end
+    end
+    
+    # 設定ファイルがない場合はデフォルト設定を使用
+    DEFAULT_CONFIG
+  end
+
   def help
     puts <<~HELP
       airu - AIルールマネージャー
@@ -328,6 +380,7 @@ class Airu
         install             AIルールをインストールします
         update              AIルールを更新します
         list                インストール済みのAIルールを表示します
+        config              設定ファイル(.airu.yml)を作成します
         -h, --help, help    このヘルプを表示します
 
       詳細は https://github.com/s4na/homebrew-airu を参照してください。
