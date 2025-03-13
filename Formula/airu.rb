@@ -1,7 +1,7 @@
 class Airu < Formula
   desc "AIルールマネージャー"
   homepage "https://github.com/s4na/homebrew-airu"
-  url "https://github.com/s4na/homebrew-airu/archive/refs/tags/v0.1.4.tar.gz"
+  url "https://github.com/s4na/homebrew-airu/archive/refs/tags/v0.1.5.tar.gz"
   sha256 "19bf318c7269a2e915da70a1c1ef5b9fa30bb8a29215037a7c7c9dcdd0b9bfe6"
   license "MIT"
 

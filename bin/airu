@@ -5,9 +5,18 @@ require 'yaml'
 
 class Airu
   RULES_DIR = File.expand_path('./.airu/rules')
+  VERSION_FILE = File.expand_path('./.airu/versions.yml')
   
   def initialize
     FileUtils.mkdir_p(RULES_DIR) unless Dir.exist?(RULES_DIR)
+    FileUtils.mkdir_p(File.dirname(VERSION_FILE)) unless Dir.exist?(File.dirname(VERSION_FILE))
+    
+    # バージョン情報ファイルが存在しない場合は作成
+    unless File.exist?(VERSION_FILE)
+      File.open(VERSION_FILE, 'w') do |f|
+        f.puts YAML.dump({})
+      end
+    end
   end
 
   def run(args)
@@ -121,11 +130,19 @@ class Airu
       
       if rule_md_file
         FileUtils.cp(rule_md_file, target_file)
+        
+        # ルールのバージョン情報を更新
+        update_rule_version(rule_name, get_rule_version(rule_md_file))
+        
         puts "  ルール '#{rule_name}' を #{target_file} にインストールしました。"
         return true
       else
         # rule.mdがない場合は最初のファイルをコピー
         FileUtils.cp(rule_files.first, target_file)
+        
+        # ルールのバージョン情報を更新
+        update_rule_version(rule_name, get_rule_version(rule_files.first))
+        
         puts "  ルール '#{rule_name}' を #{target_file} にインストールしました。"
         puts "  警告: rule.mdファイルが見つからなかったため、別のファイルをコピーしました。"
         return true
@@ -136,17 +153,165 @@ class Airu
     end
   end
 
+  def get_rule_version(rule_file)
+    # ファイルの内容からバージョン情報を抽出
+    # 例: "# Version: 1.0.0" という行を探す
+    version = "0.0.0" # デフォルトバージョン
+    
+    if File.exist?(rule_file)
+      File.readlines(rule_file).each do |line|
+        if line =~ /^#\s*Version:\s*(\d+\.\d+\.\d+)/i
+          version = $1
+          break
+        end
+      end
+    end
+    
+    version
+  end
+
+  def update_rule_version(rule_name, version)
+    # バージョン情報ファイルを読み込む
+    versions = {}
+    if File.exist?(VERSION_FILE)
+      begin
+        versions = YAML.load_file(VERSION_FILE) || {}
+      rescue
+        versions = {}
+      end
+    end
+    
+    # バージョン情報を更新
+    versions[rule_name] = {
+      'version' => version,
+      'installed_at' => Time.now.to_s
+    }
+    
+    # バージョン情報ファイルを保存
+    File.open(VERSION_FILE, 'w') do |f|
+      f.puts YAML.dump(versions)
+    end
+  end
+
   def update
     puts "AIルールを更新しています..."
-    # TODO: 実際の更新ロジックを実装
-    puts "更新完了！"
+    
+    # .airuファイルの存在確認
+    unless File.exist?('.airu')
+      puts "エラー: .airuファイルが見つかりません。"
+      puts "airu initコマンドを実行して.airuファイルを作成してください。"
+      return
+    end
+    
+    # .airuファイルからルールを読み込む
+    rules = []
+    File.readlines('.airu').each do |line|
+      line = line.strip
+      next if line.empty? || line.start_with?('#')
+      rules << line
+    end
+    
+    if rules.empty?
+      puts "警告: .airuファイルにルールが指定されていません。"
+      return
+    end
+    
+    # バージョン情報ファイルを読み込む
+    versions = {}
+    if File.exist?(VERSION_FILE)
+      begin
+        versions = YAML.load_file(VERSION_FILE) || {}
+      rescue
+        versions = {}
+      end
+    end
+    
+    # ルールを更新
+    updated = false
+    rules.each do |rule|
+      rule_dir = File.join(RULES_DIR, rule)
+      unless Dir.exist?(rule_dir)
+        puts "  エラー: ルール '#{rule}' が見つかりません。"
+        next
+      end
+      
+      # rule.mdファイルを探す
+      rule_files = Dir.glob(File.join(rule_dir, '**', '*'))
+      rule_md_file = rule_files.find { |f| File.basename(f) == 'rule.md' } || rule_files.first
+      
+      next unless rule_md_file
+      
+      # 現在のバージョンを取得
+      current_version = get_rule_version(rule_md_file)
+      
+      # インストール済みのバージョンを取得
+      installed_version = versions.dig(rule, 'version') || "0.0.0"
+      
+      # バージョンを比較
+      if compare_versions(current_version, installed_version) > 0
+        puts "  ルール '#{rule}' を更新しています (#{installed_version} -> #{current_version})..."
+        install_rule(rule)
+        updated = true
+      else
+        puts "  ルール '#{rule}' は最新です (#{installed_version})。"
+      end
+    end
+    
+    if updated
+      puts "更新完了！"
+    else
+      puts "すべてのルールは最新です。"
+    end
+  end
+
+  def compare_versions(version1, version2)
+    # バージョン文字列を比較
+    # 戻り値: version1 > version2 なら 1, version1 < version2 なら -1, 等しいなら 0
+    v1_parts = version1.split('.').map(&:to_i)
+    v2_parts = version2.split('.').map(&:to_i)
+    
+    # 桁数を揃える
+    while v1_parts.size < 3
+      v1_parts << 0
+    end
+    
+    while v2_parts.size < 3
+      v2_parts << 0
+    end
+    
+    # 比較
+    3.times do |i|
+      if v1_parts[i] > v2_parts[i]
+        return 1
+      elsif v1_parts[i] < v2_parts[i]
+        return -1
+      end
+    end
+    
+    return 0 # 等しい
   end
 
   def list
     puts "インストール済みのAIルール:"
-    # TODO: インストール済みルールの一覧表示ロジックを実装
-    if Dir.empty?(RULES_DIR)
+    
+    # バージョン情報ファイルを読み込む
+    versions = {}
+    if File.exist?(VERSION_FILE)
+      begin
+        versions = YAML.load_file(VERSION_FILE) || {}
+      rescue
+        versions = {}
+      end
+    end
+    
+    if versions.empty?
       puts "  インストール済みのルールはありません。"
+      return
+    end
+    
+    # インストール済みルールを表示
+    versions.each do |rule, info|
+      puts "  #{rule} (バージョン: #{info['version']}, インストール日時: #{info['installed_at']})"
     end
   end
 
