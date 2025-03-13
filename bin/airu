@@ -4,8 +4,8 @@ require 'fileutils'
 require 'yaml'
 
 class Airu
-  RULES_DIR = File.expand_path('~/.airu/rules')
-  VERSION_FILE = File.expand_path('~/.airu/versions.yml')
+  RULES_DIR = File.join(ENV['HOME'], '.airu/rules')
+  VERSION_FILE = File.join(ENV['HOME'], '.airu/versions.yml')
   DEFAULT_CONFIG = {
     'rules_dir' => RULES_DIR,
     'default_rules' => ['project-rule', 'command-rule']
@@ -16,7 +16,9 @@ class Airu
     @config = load_config
     
     # ルールディレクトリを設定
-    @rules_dir = File.expand_path(@config['rules_dir'])
+    @rules_dir = @config['rules_dir'].start_with?('~') ? 
+      File.join(ENV['HOME'], @config['rules_dir'].sub(/^\~\//, '')) : 
+      @config['rules_dir']
     
     # ディレクトリが存在しない場合は作成
     FileUtils.mkdir_p(@rules_dir) unless Dir.exist?(@rules_dir)

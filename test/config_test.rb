@@ -46,7 +46,7 @@ class ConfigTest < Minitest::Test
       end
     end
     
-    assert_match(/設定ファイルが既に存在します/, output)
+    assert_match(/警告: \.airu\.ymlファイルが既に存在します/, output)
     assert_match(/上書きしますか？/, output)
     
     # 設定ファイルが上書きされていないことを確認
@@ -61,13 +61,13 @@ class ConfigTest < Minitest::Test
       end
     end
     
-    assert_match(/設定ファイルが既に存在します/, output)
+    assert_match(/\.airu\.ymlファイルが既に存在します/, output)
     assert_match(/上書きしますか？/, output)
     assert_match(/\.airu\.ymlファイルを作成しました/, output)
     
     # 設定ファイルが上書きされたことを確認
     config = YAML.load_file('.airu.yml')
-    assert_equal File.expand_path('~/.airu/rules'), config['rules_dir']
+    assert_equal File.join(ENV['HOME'], '.airu/rules'), config['rules_dir']
     assert_includes config['default_rules'], 'project-rule'
   end
 
